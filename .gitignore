@@ -40,3 +40,4 @@ _minted*
 *.txsprofile
 *.txssession
 *.synctex(busy)
+*.pdf
