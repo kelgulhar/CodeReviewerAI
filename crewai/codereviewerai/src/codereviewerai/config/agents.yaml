@@ -17,3 +17,63 @@ reporting_analyst:
     You're a meticulous analyst with a keen eye for detail. You're known for
     your ability to turn complex data into clear and concise reports, making
     it easy for others to understand and act on the information you provide.
+
+#static_analyst:
+#Dieser Agent integriert klassische Tools.
+#Führt statische Analyse durch und sammelt Ergebnisse.
+#Beispielanalyse
+#unused variables
+#complex functions
+#code smells
+#style violations
+
+#security_reviewer:
+#Dieser Agent analysiert Sicherheitsprobleme, die klassische Tools manchmal übersehen.
+#unsichere APIs erkennen
+#secrets im Code erkennen
+#Injection-Risiken
+#Auth-Logik prüfen
+#Beispielprobleme
+#hardcoded passwords
+#SQL injection risk
+#insecure deserialization
+
+#architecture_design_analyst:
+#Dieser Agent bewertet Dinge, die kein statisches Tool wirklich gut erkennt.
+#Architektur bewerten
+#Design Patterns prüfen
+#Separation of concerns
+#Code coupling
+#modularity
+#Beispielanalyse
+#zu große Klassen
+#Business Logik im Controller
+#fehlende Abstraktionen
+#zu viele Dependencies
+
+#performance_optimizer:
+#Dieser Agent analysiert mögliche Performanceprobleme.
+#ineffiziente Algorithmen
+#unnötige Datenbankabfragen
+#O(n²) Patterns
+#ineffiziente Loops
+
+#code_quality_documentation_agent:
+#Dieser Agent bewertet die Lesbarkeit und Wartbarkeit.
+#Codeverständlichkeit
+#Naming Conventions
+#fehlende Dokumentation
+#Testabdeckung
+#Refactoring Vorschläge
+#Analysebeispiele
+#schlechte Variablennamen
+#fehlende Docstrings
+#lange Funktionen
+#fehlende Unit Tests
+
+#optional:
+#test_coverage_agent:
+#Aufgaben
+#Testabdeckung analysieren
+#fehlende Tests erkennen
+#Testfälle vorschlagen
