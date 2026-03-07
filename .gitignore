@@ -41,3 +41,8 @@ _minted*
 *.txssession
 *.synctex(busy)
 *.pdf
+
+#CrewAI Specifics
+#.env #CAREFUL!!! 
+__pycache__/
+.DS_Store
