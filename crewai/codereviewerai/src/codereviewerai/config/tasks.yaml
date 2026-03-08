@@ -1,73 +1,73 @@
 static_analysis_task:
   description: >
-    Perform a static code analysis of {project} and identify issues related to
+    Perform a static code analysis of PLACEHOLDER and identify issues related to
     maintainability, style compliance, and code structure.
     Focus especially on unused variables, complex functions, code smells,
     and style violations.
   expected_output: >
-    A structured list of static analysis findings for {project}, including the
+    A structured list of static analysis findings for PLACEHOLDER, including the
     issue type, affected code area, severity, and a short recommendation for
     improvement.
     Formatted as markdown without '```'
   agent: static_analyst
 
-security_review_task:
-  description: >
-    Review {project} for potential security vulnerabilities and risky coding
-    practices that may not always be detected by traditional static analysis tools.
-    Focus especially on insecure APIs, hardcoded secrets, injection risks,
-    insecure deserialization, and weaknesses in authentication or authorization logic.
-  expected_output: >
-    A structured security review of {project} listing identified vulnerabilities,
-    their potential impact, affected code areas, severity, and recommended remediation steps.
-    Formatted as markdown without '```'
-  agent: security_reviewer
-
-architecture_design_review_task:
-  description: >
-    Analyze the architecture and design of {project} with respect to modularity,
-    separation of concerns, code coupling, abstraction quality, and maintainability.
-    Pay special attention to oversized classes, business logic inside controllers,
-    missing abstractions, and excessive dependencies.
-  expected_output: >
-    A detailed architecture and design assessment of {project}, including key
-    structural weaknesses, examples of problematic design decisions, and concrete
-    recommendations for improving modularity and maintainability.
-    Formatted as markdown without '```'
-  agent: architecture_design_analyst
-
-performance_analysis_task:
-  description: >
-    Analyze {project} for potential performance bottlenecks and inefficient
-    implementation patterns.
-    Focus on inefficient algorithms, unnecessary database queries, O(n²) patterns,
-    and avoidable overhead in loops or data processing.
-  expected_output: >
-    A performance analysis report for {project} describing possible bottlenecks,
-    inefficient code paths, their likely runtime impact, and practical optimization suggestions.
-    Formatted as markdown without '```'
-  agent: performance_optimizer
-
-code_quality_documentation_task:
-  description: >
-    Review the readability, maintainability, and documentation quality of {project}.
-    Focus on naming conventions, code clarity, missing documentation, long functions,
-    missing docstrings, and general refactoring opportunities.
-    Also consider whether important logic lacks supporting unit tests.
-  expected_output: >
-    A code quality and documentation review for {project}, including readability issues,
-    maintainability concerns, missing documentation, and concrete refactoring suggestions.
-    Formatted as markdown without '```'
-  agent: code_quality_documentation_agent
-
-test_coverage_analysis_task:
-  description: >
-    Analyze the current test coverage of {project} and identify critical code paths
-    that are insufficiently tested or completely untested.
-    Suggest high-value unit and integration test cases that would improve confidence
-    in the system.
-  expected_output: >
-    A test coverage assessment for {project}, including likely coverage gaps,
-    risk areas caused by missing tests, and a prioritized list of recommended test cases.
-    Formatted as markdown without '```'
-  agent: test_coverage_agent
+#security_review_task:
+#  description: >
+#    Review {project} for potential security vulnerabilities and risky coding
+#    practices that may not always be detected by traditional static analysis tools.
+#    Focus especially on insecure APIs, hardcoded secrets, injection risks,
+#    insecure deserialization, and weaknesses in authentication or authorization logic.
+#  expected_output: >
+#    A structured security review of {project} listing identified vulnerabilities,
+#    their potential impact, affected code areas, severity, and recommended remediation steps.
+#    Formatted as markdown without '```'
+#  agent: security_reviewer
+#
+#architecture_design_review_task:
+#  description: >
+#    Analyze the architecture and design of {project} with respect to modularity,
+#    separation of concerns, code coupling, abstraction quality, and maintainability.
+#    Pay special attention to oversized classes, business logic inside controllers,
+#    missing abstractions, and excessive dependencies.
+#  expected_output: >
+#    A detailed architecture and design assessment of {project}, including key
+#    structural weaknesses, examples of problematic design decisions, and concrete
+#    recommendations for improving modularity and maintainability.
+#    Formatted as markdown without '```'
+#  agent: architecture_design_analyst
+#
+#performance_analysis_task:
+#  description: >
+#    Analyze {project} for potential performance bottlenecks and inefficient
+#    implementation patterns.
+#    Focus on inefficient algorithms, unnecessary database queries, O(n²) patterns,
+#    and avoidable overhead in loops or data processing.
+#  expected_output: >
+#    A performance analysis report for {project} describing possible bottlenecks,
+#    inefficient code paths, their likely runtime impact, and practical optimization suggestions.
+#    Formatted as markdown without '```'
+#  agent: performance_optimizer
+#
+#code_quality_documentation_task:
+#  description: >
+#    Review the readability, maintainability, and documentation quality of {project}.
+#    Focus on naming conventions, code clarity, missing documentation, long functions,
+#    missing docstrings, and general refactoring opportunities.
+#    Also consider whether important logic lacks supporting unit tests.
+#  expected_output: >
+#    A code quality and documentation review for {project}, including readability issues,
+#    maintainability concerns, missing documentation, and concrete refactoring suggestions.
+#    Formatted as markdown without '```'
+#  agent: code_quality_documentation_agent
+#
+#test_coverage_analysis_task:
+#  description: >
+#    Analyze the current test coverage of {project} and identify critical code paths
+#    that are insufficiently tested or completely untested.
+#    Suggest high-value unit and integration test cases that would improve confidence
+#    in the system.
+#  expected_output: >
+#    A test coverage assessment for {project}, including likely coverage gaps,
+#    risk areas caused by missing tests, and a prioritized list of recommended test cases.
+#    Formatted as markdown without '```'
+#  agent: test_coverage_agent
