@@ -1,7 +1,12 @@
 from crewai import Agent, Crew, Process, Task, LLM
+from codereviewerai.tools.clone_repo import CloneRepoTool
+from codereviewerai.tools.read_files import ReadRepoFilesTool
+from codereviewerai.tools.read_projects_json import ReadProjectTool
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
+from crewai_tools import SerperDevTool
+
 
 import os
 
@@ -36,6 +41,7 @@ class Codereviewerai():
         return Agent(
             config=self.agents_config['static_analyst'], # type: ignore[index]
             llm=self.local_llm,
+            tools=[ReadProjectTool(), CloneRepoTool(), ReadRepoFilesTool(), SerperDevTool(api_key=os.getenv("SERPER_API_KEY"))],
             verbose=True
         )
 
@@ -53,6 +59,7 @@ class Codereviewerai():
     def static_analysis_task(self) -> Task:
         return Task(
             config=self.tasks_config['static_analysis_task'], # type: ignore[index]
+            output_file='output/static_analysis.md',
         )
 
     # @task
