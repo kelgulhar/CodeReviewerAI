@@ -43,6 +43,6 @@ _minted*
 *.pdf
 
 #CrewAI Specifics
-.env #critical section!
+.env
 __pycache__/
 .DS_Store
