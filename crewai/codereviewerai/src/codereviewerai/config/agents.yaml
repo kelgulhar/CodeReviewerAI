@@ -1,8 +1,8 @@
 static_analyst:
   role: >
-    PLACEHOLDER Static Analysis Specialist
+    Static Analysis Specialist
   goal: >
-    Perform static code analysis on PLACEHOLDER and identify maintainability,
+    Perform static code analysis on {path} and identify maintainability,
     style, and structural issues using classical analysis techniques and tools.
   backstory: >
     You're an experienced static analysis expert with a strong background in

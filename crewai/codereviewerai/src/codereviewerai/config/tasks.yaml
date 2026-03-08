@@ -1,11 +1,11 @@
 static_analysis_task:
   description: >
-    Perform a static code analysis of PLACEHOLDER and identify issues related to
+    Perform a static code analysis of project defined in {path} and identify issues related to
     maintainability, style compliance, and code structure.
     Focus especially on unused variables, complex functions, code smells,
     and style violations.
   expected_output: >
-    A structured list of static analysis findings for PLACEHOLDER, including the
+    A structured list of static analysis findings for project defined in {path}, including the
     issue type, affected code area, severity, and a short recommendation for
     improvement.
     Formatted as markdown without '```'
