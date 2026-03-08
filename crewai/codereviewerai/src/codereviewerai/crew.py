@@ -10,9 +10,15 @@ from crewai_tools import SerperDevTool
 
 import os
 
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+# MCP Integration - falls verfügbar
+try:
+    from codereviewerai.mcp.mcp_server import get_mcp_tools
+    MCP_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: MCP tools not available: {e}")
+    MCP_AVAILABLE = False
+    def get_mcp_tools():
+        return []
 
 @CrewBase
 class Codereviewerai():
@@ -21,40 +27,84 @@ class Codereviewerai():
     agents: List[BaseAgent]
     tasks: List[Task]
     
-    # this is onlny optional for those who have no acccess to public LLM with tool calling support
-    #REMARK: there is a bug with python 3.12 and litellm causing logging errors during shutdown that are not relevant - you can ignore
+    # LLM Konfiguration - kann auch lokaler LLM verwendet werden
+    # Hinweis: Bei Python 3.12 und litellm gibt es bekannte Logging-Fehler beim Shutdown, die ignoriert werden können
     local_llm = LLM(
         model=os.getenv("MODEL"),
         base_url="https://api.openai.com/v1",
-        #base_url="https://daystrom.ditm.at:4000/v1",
+        #base_url="https://daystrom.ditm.at:4000/v1",  # für lokalen LLM
         api_key=os.getenv("OPENAI_API_KEY"),
     )
-
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
     
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
+    def _get_mcp_tools(self):
+        """Lädt MCP Tools falls verfügbar."""
+        if MCP_AVAILABLE:
+            try:
+                return get_mcp_tools()
+            except Exception as e:
+                print(f"Warning: Could not load MCP tools: {e}")
+                return []
+        return []
+    
     @agent
     def static_analyst(self) -> Agent:
+        mcp_tools = self._get_mcp_tools()
         return Agent(
             config=self.agents_config['static_analyst'], # type: ignore[index]
             llm=self.local_llm,
-            tools=[ReadProjectTool(), CloneRepoTool(), ReadRepoFilesTool(), SerperDevTool(api_key=os.getenv("SERPER_API_KEY"))],
+            tools=[
+                ReadProjectTool(), 
+                CloneRepoTool(), 
+                ReadRepoFilesTool(), 
+                SerperDevTool(api_key=os.getenv("SERPER_API_KEY"))
+            ] + mcp_tools,
             verbose=True
         )
 
-    # @agent
-    # def reporting_analyst(self) -> Agent:
-    #     return Agent(
-    #         config=self.agents_config['reporting_analyst'], # type: ignore[index]
-    #         verbose=True
-    #     )
+    @agent
+    def security_reviewer(self) -> Agent:
+        mcp_tools = self._get_mcp_tools()
+        return Agent(
+            config=self.agents_config['security_reviewer'], # type: ignore[index]
+            llm=self.local_llm,
+            tools=[
+                CloneRepoTool(), 
+                ReadRepoFilesTool(), 
+                SerperDevTool(api_key=os.getenv("SERPER_API_KEY"))
+            ] + mcp_tools,
+            verbose=True
+        )
 
-    # To learn more about structured task outputs,
-    # task dependencies, and task callbacks, check out the documentation:
-    # https://docs.crewai.com/concepts/tasks#overview-of-a-task
+    @agent
+    def architecture_design_analyst(self) -> Agent:
+        mcp_tools = self._get_mcp_tools()
+        return Agent(
+            config=self.agents_config['architecture_design_analyst'], # type: ignore[index]
+            llm=self.local_llm,
+            tools=[CloneRepoTool(), ReadRepoFilesTool()] + mcp_tools,
+            verbose=True
+        )
+
+    @agent
+    def performance_optimizer(self) -> Agent:
+        mcp_tools = self._get_mcp_tools()
+        return Agent(
+            config=self.agents_config['performance_optimizer'], # type: ignore[index]
+            llm=self.local_llm,
+            tools=[CloneRepoTool(), ReadRepoFilesTool()] + mcp_tools,
+            verbose=True
+        )
+
+    @agent
+    def code_quality_documentation_agent(self) -> Agent:
+        mcp_tools = self._get_mcp_tools()
+        return Agent(
+            config=self.agents_config['code_quality_documentation_agent'], # type: ignore[index]
+            llm=self.local_llm,
+            tools=[CloneRepoTool(), ReadRepoFilesTool()] + mcp_tools,
+            verbose=True
+        )
+
     @task
     def static_analysis_task(self) -> Task:
         return Task(
@@ -62,23 +112,40 @@ class Codereviewerai():
             output_file='output/static_analysis.md',
         )
 
-    # @task
-    # def reporting_task(self) -> Task:
-    #     return Task(
-    #         config=self.tasks_config['reporting_task'], # type: ignore[index]
-    #         output_file='report.md'
-    #     )
+    @task
+    def security_review_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['security_review_task'], # type: ignore[index]
+            output_file='output/security_review.md',
+        )
+
+    @task
+    def architecture_design_review_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['architecture_design_review_task'], # type: ignore[index]
+            output_file='output/architecture_review.md',
+        )
+
+    @task
+    def performance_analysis_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['performance_analysis_task'], # type: ignore[index]
+            output_file='output/performance_analysis.md',
+        )
+
+    @task
+    def code_quality_documentation_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['code_quality_documentation_task'], # type: ignore[index]
+            output_file='output/code_quality_review.md',
+        )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the Codereviewerai crew"""
-        # To learn how to add knowledge sources to your crew, check out the documentation:
-        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
-
+        """Erstellt die Codereviewerai Crew"""
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
