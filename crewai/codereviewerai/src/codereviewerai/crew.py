@@ -1,12 +1,12 @@
 from crewai import Agent, Crew, Process, Task, LLM
-from codereviewerai.tools.clone_repo import CloneRepoTool
-from codereviewerai.tools.read_files import ReadRepoFilesTool
 from codereviewerai.tools.read_projects_json import ReadProjectTool
+from codereviewerai.tools.clone_repo import CloneRepoTool
+from codereviewerai.tools.run_static_analysis import RunStaticAnalysisTool
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
-from crewai_tools import SerperDevTool
-
+from crewai_tools import DirectoryReadTool, FileReadTool, DirectorySearchTool
+# from crewai_tools import SerperDevTool
 
 import os
 
@@ -21,8 +21,6 @@ class Codereviewerai():
     agents: List[BaseAgent]
     tasks: List[Task]
     
-    # this is onlny optional for those who have no acccess to public LLM with tool calling support
-    #REMARK: there is a bug with python 3.12 and litellm causing logging errors during shutdown that are not relevant - you can ignore
     local_llm = LLM(
         model=os.getenv("MODEL"),
         base_url="https://api.openai.com/v1",
@@ -30,31 +28,45 @@ class Codereviewerai():
         api_key=os.getenv("OPENAI_API_KEY"),
     )
 
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
-    
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
     def static_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['static_analyst'], # type: ignore[index]
             llm=self.local_llm,
-            tools=[ReadProjectTool(), CloneRepoTool(), ReadRepoFilesTool(), SerperDevTool(api_key=os.getenv("SERPER_API_KEY"))],
-            verbose=True
+            tools=[
+                ReadProjectTool(),
+                CloneRepoTool(),
+                DirectoryReadTool(),
+                FileReadTool(),
+                RunStaticAnalysisTool(),
+            ],
+            verbose=True,
+            reasoning=True,
+            max_reasoning_attempts=2,
+            max_iter=12,
+            respect_context_window=True,
         )
 
-    # @agent
-    # def reporting_analyst(self) -> Agent:
-    #     return Agent(
-    #         config=self.agents_config['reporting_analyst'], # type: ignore[index]
-    #         verbose=True
-    #     )
+    @agent
+    def architecture_design_analyst(self) -> Agent:
+        return Agent(
+            config=self.agents_config['architecture_design_analyst'],
+            llm=self.local_llm,
+            tools=[
+                ReadProjectTool(),  # custom: projects.json -> repo URL
+                CloneRepoTool(),  # custom: repo lokal clonen
+                DirectoryReadTool(),  # built-in: Struktur lesen
+                FileReadTool(),  # built-in: einzelne Dateien lesen
+                # DirectorySearchTool(),  # built-in: semantisch im Repo suchen
+                # CodeDocsSearchTool(),  # optional: Framework-/Lib-Doku
+            ],
+            verbose=True,
+            reasoning=True,
+            max_reasoning_attempts=2,
+            max_iter=12,
+            respect_context_window=True,
+        )
 
-    # To learn more about structured task outputs,
-    # task dependencies, and task callbacks, check out the documentation:
-    # https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def static_analysis_task(self) -> Task:
         return Task(
@@ -62,12 +74,12 @@ class Codereviewerai():
             output_file='output/static_analysis.md',
         )
 
-    # @task
-    # def reporting_task(self) -> Task:
-    #     return Task(
-    #         config=self.tasks_config['reporting_task'], # type: ignore[index]
-    #         output_file='report.md'
-    #     )
+    @task
+    def architecture_design_review_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["architecture_design_review_task"],  # type: ignore[index]
+            output_file="output/architecture_review.md",
+        )
 
     @crew
     def crew(self) -> Crew:

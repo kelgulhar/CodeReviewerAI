@@ -1,13 +1,38 @@
 static_analysis_task:
   description: >
-    Perform a static code analysis of project defined in {path} and identify issues related to
-    maintainability, style compliance, and code structure.
-    Focus especially on unused variables, complex functions, code smells,
-    and style violations.
+    Perform a static analysis of the repository defined in {path}.
+
+    Required execution order:
+    1. Use the project-reading tool to resolve the repository URL from {path}.
+    2. Clone the repository locally.
+    3. Inspect the repository structure.
+    4. Read important configuration files such as pyproject.toml, setup.cfg,
+       package.json, tsconfig.json, pom.xml, build.gradle, or equivalent if present.
+    5. Run the static-analysis tool and collect deterministic findings.
+    6. Read only the files necessary to validate, explain, and prioritize the findings.
+
+    Focus on:
+    - style violations
+    - complexity hotspots
+    - maintainability problems
+    - duplicated or suspicious structure
+    - oversized files or functions/classes when visible from the findings
+
+    Do not speculate. Every finding must reference affected files or directories.
   expected_output: >
-    A structured list of static analysis findings for project defined in {path}, including the
-    issue type, affected code area, severity, and a short recommendation for
-    improvement.
+    A markdown report with these sections:
+    1. Executive Summary
+    2. Findings
+    3. Hotspots
+    4. Recommendations
+
+    For each finding include:
+    - title
+    - severity (low/medium/high)
+    - affected file(s)
+    - evidence
+    - recommendation
+
     Formatted as markdown without '```'
   agent: static_analyst
 
@@ -22,20 +47,51 @@ static_analysis_task:
 #    their potential impact, affected code areas, severity, and recommended remediation steps.
 #    Formatted as markdown without '```'
 #  agent: security_reviewer
-#
-#architecture_design_review_task:
-#  description: >
-#    Analyze the architecture and design of {project} with respect to modularity,
-#    separation of concerns, code coupling, abstraction quality, and maintainability.
-#    Pay special attention to oversized classes, business logic inside controllers,
-#    missing abstractions, and excessive dependencies.
-#  expected_output: >
-#    A detailed architecture and design assessment of {project}, including key
-#    structural weaknesses, examples of problematic design decisions, and concrete
-#    recommendations for improving modularity and maintainability.
-#    Formatted as markdown without '```'
-#  agent: architecture_design_analyst
-#
+
+architecture_design_review_task:
+  description: >
+    Perform an architecture and design review of the repository defined in {path}.
+
+    Required execution order:
+    1. Use the project-reading tool to resolve the repository URL from {path}.
+    2. Clone the repository locally.
+    3. Inspect the full directory structure.
+    4. Read the key configuration, bootstrap, routing, dependency, and module entry files.
+    5. Evaluate architectural layering, separation of concerns, coupling,
+       dependency direction, abstraction quality, and module boundaries.
+    6. Use the static analysis results as supporting context, but do not repeat them
+       unless they are architecturally relevant.
+
+    Focus especially on:
+    - business logic in the wrong layer
+    - oversized modules/classes
+    - weak module boundaries
+    - missing abstractions
+    - tight coupling
+    - unclear ownership of responsibilities
+    - maintainability risks caused by structure
+
+    Do not speculate. Ground every conclusion in repository structure and concrete files.
+  expected_output: >
+    A markdown architecture review with these sections:
+    1. Architecture Overview
+    2. Structural Strengths
+    3. Structural Weaknesses
+    4. Architectural Hotspots
+    5. Refactoring Recommendations
+
+    For each weakness include:
+    - title
+    - severity (low/medium/high)
+    - affected file(s) or module(s)
+    - reasoning
+    - recommendation
+
+    Formatted as markdown without '```'
+  agent: architecture_design_analyst
+  context:
+    - static_analysis_task
+
 #performance_analysis_task:
 #  description: >
 #    Analyze {project} for potential performance bottlenecks and inefficient
