@@ -1,40 +1,33 @@
+prepare_repo_task:
+  description: >
+    Use the MCP tool prepare_repository with {path}.
+    Return the structured setup result only.
+  expected_output: >
+    A structured JSON object with:
+    - repo_url
+    - repo_path
+    - repo_tree
+    - manifest_summary
+  agent: repo_setup_agent
+
 static_analysis_task:
   description: >
-    Perform a static analysis of the repository defined in {path}.
-
-    Required execution order:
-    1. Use the project-reading tool to resolve the repository URL from {path}.
-    2. Clone the repository locally.
-    3. Inspect the repository structure.
-    4. Read important configuration files such as pyproject.toml, setup.cfg,
-       package.json, tsconfig.json, pom.xml, build.gradle, or equivalent if present.
-    5. Run the static-analysis tool and collect deterministic findings.
-    6. Read only the files necessary to validate, explain, and prioritize the findings.
-
-    Focus on:
-    - style violations
-    - complexity hotspots
-    - maintainability problems
-    - duplicated or suspicious structure
-    - oversized files or functions/classes when visible from the findings
-
-    Do not speculate. Every finding must reference affected files or directories.
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for analysis.
+    First inspect the prepared repository context from prepare_repo_task.
+    Then perform the static analysis on that prepared local repository.
+    Use FileReadTool or the MCP tools only for validation and explanation of findings.
+    If execution fails, report the failure instead of inventing findings.
   expected_output: >
-    A markdown report with these sections:
+    A markdown report with:
     1. Executive Summary
     2. Findings
     3. Hotspots
     4. Recommendations
-
-    For each finding include:
-    - title
-    - severity (low/medium/high)
-    - affected file(s)
-    - evidence
-    - recommendation
-
     Formatted as markdown without '```'
   agent: static_analyst
+  context:
+    - prepare_repo_task
 
 #security_review_task:
 #  description: >
@@ -50,46 +43,22 @@ static_analysis_task:
 
 architecture_design_review_task:
   description: >
-    Perform an architecture and design review of the repository defined in {path}.
-
-    Required execution order:
-    1. Use the project-reading tool to resolve the repository URL from {path}.
-    2. Clone the repository locally.
-    3. Inspect the full directory structure.
-    4. Read the key configuration, bootstrap, routing, dependency, and module entry files.
-    5. Evaluate architectural layering, separation of concerns, coupling,
-       dependency direction, abstraction quality, and module boundaries.
-    6. Use the static analysis results as supporting context, but do not repeat them
-       unless they are architecturally relevant.
-
-    Focus especially on:
-    - business logic in the wrong layer
-    - oversized modules/classes
-    - weak module boundaries
-    - missing abstractions
-    - tight coupling
-    - unclear ownership of responsibilities
-    - maintainability risks caused by structure
-
-    Do not speculate. Ground every conclusion in repository structure and concrete files.
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for architecture review.
+    Start from the prepared repository context and inspect structure, boundaries,
+    coupling, and modularity.
+    If execution fails, report the failure instead of inventing findings.
   expected_output: >
-    A markdown architecture review with these sections:
+    A markdown report with:
     1. Architecture Overview
     2. Structural Strengths
     3. Structural Weaknesses
     4. Architectural Hotspots
     5. Refactoring Recommendations
-
-    For each weakness include:
-    - title
-    - severity (low/medium/high)
-    - affected file(s) or module(s)
-    - reasoning
-    - recommendation
-
     Formatted as markdown without '```'
   agent: architecture_design_analyst
   context:
+    - prepare_repo_task
     - static_analysis_task
 
 #performance_analysis_task:

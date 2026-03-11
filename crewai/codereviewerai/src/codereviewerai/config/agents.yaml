@@ -1,3 +1,13 @@
+repo_setup_agent:
+  role: >
+    Repository Setup Specialist
+  goal: >
+    Prepare the repository context from {path} in a deterministic way.
+  backstory: >
+    You are responsible only for repository setup. You resolve the repository URL,
+    clone the repository, inspect its structure, and summarize key manifest files.
+    You do not perform static analysis or architecture review.
+
 static_analyst:
   role: >
     Static Analysis Specialist
