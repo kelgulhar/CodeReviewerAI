@@ -1,0 +1,6 @@
+{
+  "repo_url": "https://github.com/kelgulhar/CodeReviewerAI",
+  "repo_path": "C:\\Users\\stefa\\AppData\\Local\\Temp\\codereviewerai_repos\\repo_dcefabaa6002c869",
+  "repo_tree": "repo_dcefabaa6002c869/\n+-- crewai/\n|   `-- codereviewerai/\n|       +-- input/\n|       |   `-- projects.json\n|       +-- knowledge/\n|       |   `-- user_preference.txt\n|       +-- output/\n|       |   `-- static_analysis.md\n|       +-- src/\n|       |   `-- codereviewerai/\n|       +-- .env\n|       +-- .env.example\n|       +-- pyproject.toml\n|       +-- README.md\n|       `-- uv.lock\n+-- docs/\n|   +-- latex/\n|   |   +-- fig1.png\n|   |   +-- IEEEtran.cls\n|   |   +-- library.bib\n|   |   +-- main.pdf\n|   |   `-- main.tex\n|   `-- template_do_not_edit/\n|       +-- fig1.png\n|       +-- IEEEtran.cls\n|       +-- library.bib\n|       `-- main.tex\n+-- .gitignore\n+-- LICENSE\n`-- README.md",
+  "manifest_summary": "Detected languages: python"
+}

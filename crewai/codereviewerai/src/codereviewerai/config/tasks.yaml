@@ -29,17 +29,31 @@ static_analysis_task:
   context:
     - prepare_repo_task
 
-#security_review_task:
-#  description: >
-#    Review {project} for potential security vulnerabilities and risky coding
-#    practices that may not always be detected by traditional static analysis tools.
-#    Focus especially on insecure APIs, hardcoded secrets, injection risks,
-#    insecure deserialization, and weaknesses in authentication or authorization logic.
-#  expected_output: >
-#    A structured security review of {project} listing identified vulnerabilities,
-#    their potential impact, affected code areas, severity, and recommended remediation steps.
-#    Formatted as markdown without '```'
-#  agent: security_reviewer
+security_review_task:
+  description: >
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for security review.
+    First inspect the prepared repository context from prepare_repo_task.
+    Then use MCP tools to inspect security-relevant files, dependency definitions,
+    configuration, secrets handling, authentication or authorization related code,
+    and external integration points in the prepared repository.
+    Validate each finding against concrete repository evidence before reporting it.
+    Focus on hardcoded secrets, insecure defaults, injection risks, unsafe
+    deserialization, weak input validation, access control issues, and sensitive
+    data exposure.
+    If execution fails, report the failure instead of inventing findings.
+  expected_output: >
+    A markdown report with:
+    1. Security Summary
+    2. Confirmed Findings
+    3. Risky Areas Requiring Attention
+    4. Severity Assessment
+    5. Recommended Remediations
+    Formatted as markdown without '```'
+  agent: security_reviewer
+  context:
+    - prepare_repo_task
+    - static_analysis_task
 
 architecture_design_review_task:
   description: >
@@ -61,38 +75,83 @@ architecture_design_review_task:
     - prepare_repo_task
     - static_analysis_task
 
-#performance_analysis_task:
-#  description: >
-#    Analyze {project} for potential performance bottlenecks and inefficient
-#    implementation patterns.
-#    Focus on inefficient algorithms, unnecessary database queries, O(n²) patterns,
-#    and avoidable overhead in loops or data processing.
-#  expected_output: >
-#    A performance analysis report for {project} describing possible bottlenecks,
-#    inefficient code paths, their likely runtime impact, and practical optimization suggestions.
-#    Formatted as markdown without '```'
-#  agent: performance_optimizer
-#
-#code_quality_documentation_task:
-#  description: >
-#    Review the readability, maintainability, and documentation quality of {project}.
-#    Focus on naming conventions, code clarity, missing documentation, long functions,
-#    missing docstrings, and general refactoring opportunities.
-#    Also consider whether important logic lacks supporting unit tests.
-#  expected_output: >
-#    A code quality and documentation review for {project}, including readability issues,
-#    maintainability concerns, missing documentation, and concrete refactoring suggestions.
-#    Formatted as markdown without '```'
-#  agent: code_quality_documentation_agent
-#
-#test_coverage_analysis_task:
-#  description: >
-#    Analyze the current test coverage of {project} and identify critical code paths
-#    that are insufficiently tested or completely untested.
-#    Suggest high-value unit and integration test cases that would improve confidence
-#    in the system.
-#  expected_output: >
-#    A test coverage assessment for {project}, including likely coverage gaps,
-#    risk areas caused by missing tests, and a prioritized list of recommended test cases.
-#    Formatted as markdown without '```'
-#  agent: test_coverage_agent
+performance_analysis_task:
+  description: >
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for performance analysis.
+    First inspect the prepared repository context from prepare_repo_task and use
+    the outputs from static_analysis_task and architecture_design_review_task to
+    identify likely runtime and scalability hotspots.
+    Focus on inefficient algorithms, repeated work, nested loops, avoidable
+    recomputation, blocking I/O, excessive parsing or allocation, inefficient
+    data processing, and likely bottlenecks in request, batch, or pipeline flows.
+    Distinguish clearly between confirmed inefficiencies and likely hotspots.
+    If execution fails, report the failure instead of inventing findings.
+  expected_output: >
+    A markdown report with:
+    1. Performance Summary
+    2. Confirmed Inefficiencies
+    3. Likely Hotspots
+    4. Scalability Risks
+    5. Optimization Recommendations
+    Formatted as markdown without '```'
+  agent: performance_optimizer
+  context:
+    - prepare_repo_task
+    - static_analysis_task
+    - architecture_design_review_task
+
+code_quality_documentation_task:
+  description: >
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for code quality and documentation review.
+    First inspect the prepared repository context from prepare_repo_task.
+    Then review readability, maintainability, consistency, and documentation
+    quality across the most relevant source files and developer-facing documents.
+    Focus on naming clarity, overly long or multi-purpose functions, duplicated
+    logic, weak abstractions, inconsistent conventions, missing docstrings,
+    misleading comments, and gaps in README or usage documentation.
+    Use the results from static_analysis_task and architecture_design_review_task
+    as supporting context, but validate findings against concrete repository evidence.
+    If execution fails, report the failure instead of inventing findings.
+  expected_output: >
+    A markdown report with:
+    1. Code Quality Summary
+    2. Readability Findings
+    3. Maintainability Concerns
+    4. Documentation Gaps
+    5. Refactoring Recommendations
+    Formatted as markdown without '```'
+  agent: code_quality_documentation_agent
+  context:
+    - prepare_repo_task
+    - static_analysis_task
+    - architecture_design_review_task
+
+test_coverage_analysis_task:
+  description: >
+    Use the repo_path from prepare_repo_task as the only repository location.
+    Do not use the original input path for test coverage analysis.
+    First inspect the prepared repository context from prepare_repo_task and
+    identify the available test structure, test frameworks, and coverage-related
+    signals in the repository.
+    Then compare important production modules, critical logic paths, and boundary
+    components against existing tests to identify likely gaps.
+    Focus on untested business logic, missing edge-case validation, missing
+    negative-path tests, weak assertions, fragile test structure, and missing
+    integration coverage for important boundaries.
+    Do not claim exact coverage percentages unless directly supported by repository evidence.
+    If execution fails, report the failure instead of inventing findings.
+  expected_output: >
+    A markdown report with:
+    1. Test Coverage Summary
+    2. Existing Test Signals
+    3. Coverage Gaps
+    4. Risk Areas
+    5. Recommended High-Value Test Cases
+    Formatted as markdown without '```'
+  agent: test_coverage_agent
+  context:
+    - prepare_repo_task
+    - static_analysis_task
+    - architecture_design_review_task

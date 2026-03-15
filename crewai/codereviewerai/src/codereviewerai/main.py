@@ -1,93 +1,119 @@
 #!/usr/bin/env python
+import json
 import sys
 import warnings
-
-from datetime import datetime
 
 from codereviewerai.crew import Codereviewerai
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
-# This main file is intended to be a way for you to run your
-# crew locally, so refrain from adding unnecessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
 
 def run():
     """
-    Run the crew.
+    Run the crew locally with the default projects.json input.
     """
     inputs = {
-        "path":"./input/projects.json",
+        "path": "./input/projects.json",
     }
 
     try:
         Codereviewerai().crew().kickoff(inputs=inputs)
     except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
+        raise Exception(f"An error occurred while running the crew: {e}") from e
 
 
 def train():
     """
     Train the crew for a given number of iterations.
+    Usage:
+        python -m codereviewerai.main train <n_iterations> <filename> [path]
     """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year)
-    }
-    try:
-        Codereviewerai().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+    if len(sys.argv) < 4:
+        raise Exception(
+            "Usage: train <n_iterations> <filename> [path_to_projects_json]"
+        )
 
+    input_path = sys.argv[4] if len(sys.argv) > 4 else "./input/projects.json"
+    inputs = {
+        "path": input_path,
+    }
+
+    try:
+        Codereviewerai().crew().train(
+            n_iterations=int(sys.argv[2]),
+            filename=sys.argv[3],
+            inputs=inputs,
+        )
     except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
+        raise Exception(f"An error occurred while training the crew: {e}") from e
+
 
 def replay():
     """
     Replay the crew execution from a specific task.
+    Usage:
+        python -m codereviewerai.main replay <task_id>
     """
-    try:
-        Codereviewerai().crew().replay(task_id=sys.argv[1])
+    if len(sys.argv) < 3:
+        raise Exception("Usage: replay <task_id>")
 
+    try:
+        Codereviewerai().crew().replay(task_id=sys.argv[2])
     except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
+        raise Exception(f"An error occurred while replaying the crew: {e}") from e
+
 
 def test():
     """
-    Test the crew execution and returns the results.
+    Test the crew execution and return the results.
+    Usage:
+        python -m codereviewerai.main test <n_iterations> <eval_llm> [path]
     """
+    if len(sys.argv) < 4:
+        raise Exception(
+            "Usage: test <n_iterations> <eval_llm> [path_to_projects_json]"
+        )
+
+    input_path = sys.argv[4] if len(sys.argv) > 4 else "./input/projects.json"
     inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
+        "path": input_path,
     }
 
     try:
-        Codereviewerai().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
-
+        Codereviewerai().crew().test(
+            n_iterations=int(sys.argv[2]),
+            eval_llm=sys.argv[3],
+            inputs=inputs,
+        )
     except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
+        raise Exception(f"An error occurred while testing the crew: {e}") from e
+
 
 def run_with_trigger():
     """
-    Run the crew with trigger payload.
+    Run the crew with a trigger payload.
+    Usage:
+        python -m codereviewerai.main run_with_trigger '<json_payload>'
     """
-    import json
-
-    if len(sys.argv) < 2:
-        raise Exception("No trigger payload provided. Please provide JSON payload as argument.")
+    if len(sys.argv) < 3:
+        raise Exception(
+            "No trigger payload provided. Please provide JSON payload as argument."
+        )
 
     try:
-        trigger_payload = json.loads(sys.argv[1])
-    except json.JSONDecodeError:
-        raise Exception("Invalid JSON payload provided as argument")
+        trigger_payload = json.loads(sys.argv[2])
+    except json.JSONDecodeError as e:
+        raise Exception("Invalid JSON payload provided as argument") from e
 
+    input_path = trigger_payload.get("path", "./input/projects.json")
     inputs = {
         "crewai_trigger_payload": trigger_payload,
-        "topic": "",
-        "current_year": ""
+        "path": input_path,
     }
 
     try:
-        result = Codereviewerai().crew().kickoff(inputs=inputs)
-        return result
+        return Codereviewerai().crew().kickoff(inputs=inputs)
     except Exception as e:
-        raise Exception(f"An error occurred while running the crew with trigger: {e}")
+        raise Exception(
+            f"An error occurred while running the crew with trigger: {e}"
+        ) from e
