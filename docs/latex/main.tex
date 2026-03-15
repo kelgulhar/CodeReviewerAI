@@ -7,6 +7,8 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -50,7 +52,7 @@ A key assumption is that the repository can be resolved and cloned from the give
 
 \section{Architecture}
 Describe the overall architecture of your multi-agent system.
-Figures and diagrams illustrating the architecture or interaction flow are encouraged!
+Figures and diagrams illustrating the architecture or interaction flow are encouraged! \textbf{TODO}
 
 \subsection{Agent Description}
 Our system is built around specialized agents that each focus on a specific part of the repository review process.
@@ -72,24 +74,126 @@ The system solves several repository review tasks that are distributed across sp
 
 \subsection{Flow}
 Explain the interaction flow of the system. Describe how agents communicate, 
-coordinate, and complete tasks. Diagrams are welcome.
+coordinate, and complete tasks. Diagrams are welcome. \textbf{TODO}
+\begin{figure}[htbp]
+	\centering
+	\begin{tikzpicture}[
+		node distance=0.7cm,
+		every node/.style={font=\small},
+		agent/.style={
+			rectangle,
+			rounded corners,
+			draw=black,
+			thick,
+			align=center,
+			minimum width=4.2cm,
+			minimum height=0.9cm
+		},
+		arrow/.style={
+			-{Latex[length=2.5mm]},
+			thick
+		}
+		]
+		
+		\node[agent] (setup) {Repo Setup Agent};
+		\node[agent, below=of setup] (static) {Static Analysis Agent};
+		\node[agent, below=of static] (security) {Security Agent};
+		\node[agent, below=of security] (architecture) {Architecture Design Analyst};
+		\node[agent, below=of architecture] (performance) {Performance Optimizer};
+		\node[agent, below=of performance] (quality) {Code Quality \\ Documentation Agent};
+		\node[agent, below=of quality] (test) {Test Coverage Agent};
+		
+		\draw[arrow] (setup) -- (static);
+		\draw[arrow] (static) -- (security);
+		\draw[arrow] (security) -- (architecture);
+		\draw[arrow] (architecture) -- (performance);
+		\draw[arrow] (performance) -- (quality);
+		\draw[arrow] (quality) -- (test);
+		
+	\end{tikzpicture}
+	\caption{Sequential execution flow of the agents in the multi-agent system.} \textbf{TODO}
+	\label{fig:agent_flow}
+\end{figure}
+
+\textbf{TODO} oben -> das wies wirklich bei uns ist, unten -> das wie wir uns das eigentlich gedacht hätten
+
+\begin{figure}[htbp]
+	\centering
+	\begin{tikzpicture}[
+		every node/.style={font=\scriptsize},
+		agent/.style={
+			rectangle,
+			rounded corners,
+			draw=black,
+			thick,
+			align=center,
+			minimum width=2.3cm,
+			minimum height=0.75cm
+		},
+		context/.style={
+			rectangle,
+			draw=black,
+			dashed,
+			align=center,
+			minimum width=2.7cm,
+			minimum height=0.75cm
+		},
+		arrow/.style={
+			-{Latex[length=2mm]},
+			thick
+		}
+		]
+		
+		% Main flow left to right
+		\node[agent]   (setup)   at (0,0)   {Repo Setup\\Agent};
+		\node[context] (context) at (3.0,0) {Prepared Repository\\Context};
+		\coordinate    (split)   at (4.6,0);
+		
+		% Parallel agents stacked vertically
+		\node[agent] (static)       at (7.2,  3.0) {Static Analysis\\Agent};
+		\node[agent] (security)     at (7.2,  1.8) {Security\\Agent};
+		\node[agent] (architecture) at (7.2,  0.6) {Architecture Design\\Analyst};
+		\node[agent] (performance)  at (7.2, -0.6) {Performance\\Optimizer};
+		\node[agent] (quality)      at (7.2, -1.8) {Code Quality\\Documentation Agent};
+		\node[agent] (test)         at (7.2, -3.0) {Test Coverage\\Agent};
+		
+		% Arrows
+		\draw[arrow] (setup) -- (context);
+		\draw[arrow] (context) -- (split);
+		
+		\draw[arrow] (split) -- (static.west);
+		\draw[arrow] (split) -- (security.west);
+		\draw[arrow] (split) -- (architecture.west);
+		\draw[arrow] (split) -- (performance.west);
+		\draw[arrow] (split) -- (quality.west);
+		\draw[arrow] (split) -- (test.west);
+		
+	\end{tikzpicture}
+	\caption{Execution flow of the multi-agent system. The Repo Setup Agent first prepares the shared repository context, which is then used by the analysis agents in parallel.} \textbf{TODO}
+	\label{fig:agent_parallel_context_flow_vertical}
+\end{figure}
 
 \section{Minimal}
-Describe the minimal functionality of your system and how it satisfies the minimal requirements.
+Describe the minimal functionality of your system and how it satisfies the minimal requirements. \textbf{TODO}
 
 \section{Advanced}
-Describe the additional features implemented for the advanced level and how they extend the minimal system.
-
-\section{Expert}
-Describe the expert-level features of your system and explain why they go beyond the advanced level.
+Describe the additional features implemented for the advanced level and how they extend the minimal system. \textbf{TODO}
 
 \section{Reflection}
 Reflect on the development of your system. Discuss challenges, design decisions, 
-limitations, and possible improvements for future work.
+limitations, and possible improvements for future work. \textbf{TODO}
+\begin{itemize}
+	\item Tools, die zur \begin{itemize}
+		\item The \textbf{repo\_setup\_agent} is responsible for preparing the repository context. It resolves the repository from the input file, clones it, inspects the structure, and summarizes important manifest files. This agent acts as the entry point of the workflow and provides the shared project context for the other agents.
+		\item The \textbf{static\_analyst} is responsible for deterministic static code analysis. Its task is to identify maintainability, style, and structural issues and to support its findings with concrete evidence from files and directories. It depends on the prepared repository context and uses this shared setup as the basis for its review.
+		\item The \textbf{architecture\_design\_analyst} focuses on higher-level software design questions. It evaluates modularity, separation of concerns, coupling, dependency direction, and maintainability risks. Like the static analyst, it builds on the prepared repository context and uses the structural information gathered in the setup phase to assess the system architecture.
+		\item \textbf{TODO}
+	\end{itemize}erfügung gestellt werden nur als Werkzeugkasten - agent wählt sprachlich aus, welches tool er verwendet/was am besten passen sollte -> keine möglichkeit ihm zu sagen, welches tool er zuerst verwenden soll -> preparen in eigenen agent ausgelagert um vorbereitung zuerst zu erzwingen
+\end{itemize}
 
 \section{Feedback - Optional}
 You are invited to provide optional feedback on the course and the project.
-Your comments will help improve the course for future students. Feel free to share what you found helpful, what could be improved, and any suggestions you may have. Thank you!
+Your comments will help improve the course for future students. Feel free to share what you found helpful, what could be improved, and any suggestions you may have. Thank you! \textbf{TODO}
 
 
 
