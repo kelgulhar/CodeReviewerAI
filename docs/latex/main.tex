@@ -17,7 +17,7 @@
 
 \author{\IEEEauthorblockN{Aktuelle Themen und Trends I und II \\
 BWSE - SS 2026}
-\IEEEauthorblockA{\textit{Group Nb. 1} \\
+\IEEEauthorblockA{\textit{Group Nb. 1}\\
 Lara Kammerer 2310859024\\
 Julia Michler 2510859031\\
 Stefan Zuza 2410859032}
@@ -51,17 +51,40 @@ Our multi-agent system is designed to automate the analysis of software reposito
 A key assumption is that the repository can be resolved and cloned from the given input path and that all later analyses should work on the same prepared project state. We also assume that separating responsibilities across multiple specialized agents leads to clearer and more reliable results than using one single general-purpose agent.
 
 \section{Architecture}
-Describe the overall architecture of your multi-agent system.
-Figures and diagrams illustrating the architecture or interaction flow are encouraged! \textbf{TODO}
+The system follows a modular multi-agent architecture implemented with the CrewAI framework. Each agent is responsible for a specific type of repository analysis and operates on a shared prepared repository context.
+
+The architecture separates three major concerns:
+
+\begin{itemize}
+	\item \textbf{Repository preparation}: The repo\_setup\_agent prepares the repository environment by resolving the project source, cloning the repository, and extracting structural information such as the directory tree and manifest files.
+	
+	\item \textbf{Analysis agents}: After the repository context is prepared, multiple specialized agents perform different types of analysis such as static code inspection, architecture evaluation, security scanning, performance assessment, documentation review, and test coverage analysis.
+	
+	\item \textbf{Tool infrastructure}: The analysis agents access repository data through dedicated tool layers and MCP servers. These servers expose structured functionality such as repository inspection, file discovery, secret scanning, and dependency inspection.
+\end{itemize}
+
+To keep the system modular and maintainable, the core analysis logic is implemented in reusable tool modules. The MCP servers act as thin interfaces that expose these tools to the agents. This separation improves testability and allows the analysis logic to be reused independently of the agent framework.
 
 \subsection{Agent Description}
 Our system is built around specialized agents that each focus on a specific part of the repository review process.
 
 \begin{itemize}
 	\item The \textbf{repo\_setup\_agent} is responsible for preparing the repository context. It resolves the repository from the input file, clones it, inspects the structure, and summarizes important manifest files. This agent acts as the entry point of the workflow and provides the shared project context for the other agents.
+	
+	
 	\item The \textbf{static\_analyst} is responsible for deterministic static code analysis. Its task is to identify maintainability, style, and structural issues and to support its findings with concrete evidence from files and directories. It depends on the prepared repository context and uses this shared setup as the basis for its review.
+	
+	
 	\item The \textbf{architecture\_design\_analyst} focuses on higher-level software design questions. It evaluates modularity, separation of concerns, coupling, dependency direction, and maintainability risks. Like the static analyst, it builds on the prepared repository context and uses the structural information gathered in the setup phase to assess the system architecture.
-	\item \textbf{TODO}
+	
+	
+	\item The \textbf{security\_reviewer} analyzes the repository for potential security risks and insecure coding practices. It focuses on identifying hardcoded secrets, insecure configuration files, and authentication or authorization related code. The agent uses specialized analysis tools to scan the repository for sensitive information such as API keys, passwords, or private key material and reports confirmed findings together with their severity and possible remediation strategies.
+	
+	\item The \textbf{performance\_optimizer} evaluates the repository with regard to potential performance issues and inefficient implementation patterns. Its analysis focuses on identifying computationally expensive algorithms, unnecessary loops, inefficient data processing patterns, and potential bottlenecks that could negatively impact runtime behavior. Based on these observations, the agent provides recommendations for possible optimization strategies.
+	
+	\item The \textbf{code\_quality\_documentation\_agent} focuses on code readability and maintainability. It analyzes naming conventions, code clarity, documentation completeness, and potential refactoring opportunities. The agent also highlights long or complex functions and areas where additional documentation or restructuring could improve the maintainability of the codebase.
+	
+	\item The \textbf{test\_coverage\_agent} evaluates the test structure of the repository. It identifies existing test files and attempts to detect source files that may not be covered by tests. Based on this analysis, the agent suggests potential areas where additional tests could increase reliability and confidence in the software system. 	
 \end{itemize}
 
 \subsection{Task Description}
@@ -69,12 +92,31 @@ The system solves several repository review tasks that are distributed across sp
 
 \begin{itemize}
 	\item First, the repository must be prepared: the input path is resolved, the repository is cloned, its structure is inspected, and important manifest files are summarized. This task is handled by the repo\_setup\_agent, which provides the shared context for the rest of the system.
-	\item After the setup phase, the analysis tasks are divided by review type. The static\_analyst handles static code analysis and is responsible for identifying maintainability, style, and structural issues in the codebase. The architecture\_design\_analyst focuses on higher-level design questions such as modularity, separation of concerns, coupling, boundaries, and long-term maintainability. \textbf{TODO}
+	\item After the setup phase, the analysis tasks are divided by review type. The static\_analyst handles static code analysis and is responsible for identifying maintainability, style, and structural issues in the codebase. The architecture\_design\_analyst focuses on higher-level design questions such as modularity, separation of concerns, coupling, boundaries, and long-term maintainability. 
+	
+	
+	\item Additional specialized analysis tasks extend the review process. The security\_reviewer performs a security-oriented analysis of the repository and searches for potential vulnerabilities such as exposed credentials, insecure configuration patterns, or authentication related risks. The performance\_optimizer evaluates the codebase for inefficient implementation patterns and possible runtime bottlenecks.
+	
+	
+	\item The code\_quality\_documentation\_agent focuses on maintainability aspects such as naming conventions, documentation completeness, and code readability. It identifies areas where refactoring could improve the structure of the code and where additional documentation would help future developers understand the system.
+	
+	
+	\item Finally, the test\_coverage\_agent analyzes the testing structure of the repository. It detects existing test files and compares them with the source code structure in order to identify parts of the system that may not be sufficiently covered by automated tests. Based on this information, the agent proposes additional high-value test cases.
 \end{itemize}
 
 \subsection{Flow}
-Explain the interaction flow of the system. Describe how agents communicate, 
-coordinate, and complete tasks. Diagrams are welcome. \textbf{TODO}
+The system follows a structured execution flow where the repository is prepared once and then analyzed by multiple specialized agents.
+First, the repo\_setup\_agent resolves the repository location from the provided input file, clones the repository into a local cache directory, and extracts structural information such as the repository tree and manifest files. The resulting repository path and metadata form the prepared repository context.
+
+
+After the repository preparation phase, the remaining agents perform different analysis tasks using the same repository context. In the current implementation, the agents are executed sequentially in order to simplify coordination and ensure deterministic execution.
+
+
+Each agent accesses the repository through dedicated tools that allow operations such as reading files, listing directories, detecting security-relevant patterns, or identifying potential test coverage gaps. The agents generate structured reports that describe the identified issues and provide recommendations for improvement.
+
+
+Conceptually, the architecture could also support parallel execution of the analysis agents once the repository preparation is complete. This parallel execution model is illustrated in Figure~\ref{fig:agent_parallel_context_flow_vertical}. However, for the current implementation a sequential execution strategy was chosen in order to reduce coordination complexity.\\
+
 \begin{figure}[htbp]
 	\centering
 	\begin{tikzpicture}[
@@ -111,7 +153,7 @@ coordinate, and complete tasks. Diagrams are welcome. \textbf{TODO}
 		\draw[arrow] (quality) -- (test);
 		
 	\end{tikzpicture}
-	\caption{Sequential execution flow of the agents in the multi-agent system.} \textbf{TODO}
+	\caption{Sequential execution flow of the agents in the multi-agent system.} 
 	\label{fig:agent_flow}
 \end{figure}
 
@@ -169,31 +211,49 @@ coordinate, and complete tasks. Diagrams are welcome. \textbf{TODO}
 		\draw[arrow] (split) -- (test.west);
 		
 	\end{tikzpicture}
-	\caption{Execution flow of the multi-agent system. The Repo Setup Agent first prepares the shared repository context, which is then used by the analysis agents in parallel.} \textbf{TODO}
+	\caption{Execution flow of the multi-agent system. The Repo Setup Agent first prepares the shared repository context, which is then used by the analysis agents in parallel.} 
 	\label{fig:agent_parallel_context_flow_vertical}
 \end{figure}
 
 \section{Minimal}
-Describe the minimal functionality of your system and how it satisfies the minimal requirements. \textbf{TODO}
+The minimal functionality of the system focuses on preparing a repository and performing a deterministic static analysis.
 
+At this level, the system includes the repo\_setup\_agent and the static\_analyst. The repo\_setup\_agent resolves the repository from the provided input file, clones it into a local environment, and extracts structural information such as the directory tree and key manifest files. This preparation step ensures that all later analyses operate on a consistent and deterministic repository state.
+
+The static\_analyst then performs a static code analysis using available analysis tools and repository inspection utilities. It identifies potential maintainability issues, structural weaknesses, and code quality concerns. The findings are summarized in a structured report containing an executive summary, identified hotspots, and recommended improvements.
+
+This minimal configuration demonstrates the core concept of the system: distributing repository review tasks across specialized agents that operate on a shared repository context.
 \section{Advanced}
-Describe the additional features implemented for the advanced level and how they extend the minimal system. \textbf{TODO}
+
+The advanced version of the system extends the minimal implementation by introducing additional specialized analysis agents and a structured tool infrastructure.
+
+Several additional agents were implemented to cover different aspects of repository quality. The security\_reviewer analyzes the repository for security vulnerabilities such as exposed secrets or insecure configuration patterns. The performance\_optimizer evaluates potential performance issues and inefficient implementation patterns. The code\_quality\_documentation\_agent focuses on readability, maintainability, and documentation completeness. Finally, the test\_coverage\_agent evaluates the structure of the testing setup and identifies potential gaps in test coverage.
+
+To support these agents, the system integrates a modular tool infrastructure exposed through MCP servers. These servers provide structured access to repository operations such as file inspection, dependency analysis, security scanning, and file discovery. The actual analysis logic is implemented in reusable tool modules, while the MCP servers act as thin interfaces that expose these capabilities to the agents.
+
+This architecture improves modularity, reusability, and maintainability of the system and allows the agents to perform more sophisticated repository analyses compared to the minimal version.
 
 \section{Reflection}
-Reflect on the development of your system. Discuss challenges, design decisions, 
-limitations, and possible improvements for future work. \textbf{TODO}
+
+During the development of the system several architectural and design challenges emerged.
+
+One important challenge was the interaction between agents and tools. The tools provided by the framework act as a toolbox that agents can choose from during execution. However, the system does not provide strict guarantees about the order in which tools are used. This made it difficult to enforce that repository preparation always happens before other analysis tasks.
+
+To solve this problem, repository preparation was moved into a dedicated agent (repo\_setup\_agent). This agent performs all required setup steps before any analysis agents are executed. As a result, the remaining agents can rely on a deterministic repository context.
+
+Another design decision was the separation between MCP servers and tool logic. Instead of placing all logic directly inside the MCP servers, the analysis functionality was moved into reusable tool modules. The MCP servers now act as thin wrappers that expose these tools to the agents. This improves maintainability and allows the analysis logic to be tested independently of the agent framework.
+
+Despite these improvements, the system still has limitations. The analysis results depend on heuristic detection methods and the reasoning capabilities of the language model. Future improvements could include deeper static analysis integration, more advanced dependency vulnerability scanning, and improved aggregation of results across agents.
 \begin{itemize}
-	\item Tools, die zur \begin{itemize}
-		\item The \textbf{repo\_setup\_agent} is responsible for preparing the repository context. It resolves the repository from the input file, clones it, inspects the structure, and summarizes important manifest files. This agent acts as the entry point of the workflow and provides the shared project context for the other agents.
-		\item The \textbf{static\_analyst} is responsible for deterministic static code analysis. Its task is to identify maintainability, style, and structural issues and to support its findings with concrete evidence from files and directories. It depends on the prepared repository context and uses this shared setup as the basis for its review.
-		\item The \textbf{architecture\_design\_analyst} focuses on higher-level software design questions. It evaluates modularity, separation of concerns, coupling, dependency direction, and maintainability risks. Like the static analyst, it builds on the prepared repository context and uses the structural information gathered in the setup phase to assess the system architecture.
-		\item \textbf{TODO}
-	\end{itemize}erfügung gestellt werden nur als Werkzeugkasten - agent wählt sprachlich aus, welches tool er verwendet/was am besten passen sollte -> keine möglichkeit ihm zu sagen, welches tool er zuerst verwenden soll -> preparen in eigenen agent ausgelagert um vorbereitung zuerst zu erzwingen
+	\item Tools, die zur verfügung gestellt werden nur als Werkzeugkasten - agent wählt sprachlich aus, welches tool er verwendet/was am besten passen sollte -> keine möglichkeit ihm zu sagen, welches tool er zuerst verwenden soll -> preparen in eigenen agent ausgelagert um vorbereitung zuerst zu erzwingen
 \end{itemize}
 
 \section{Feedback - Optional}
-You are invited to provide optional feedback on the course and the project.
-Your comments will help improve the course for future students. Feel free to share what you found helpful, what could be improved, and any suggestions you may have. Thank you! \textbf{TODO}
+The project provided valuable hands-on experience with multi-agent systems and modern AI-assisted software analysis workflows. In particular, the integration of specialized agents with structured tool interfaces helped illustrate how complex analysis tasks can be decomposed into smaller, focused components.
+
+One of the most interesting aspects of the project was designing the interaction between agents and tools. The process highlighted both the flexibility and the challenges of coordinating autonomous agents within a structured workflow.
+
+Overall, the project was a useful opportunity to explore practical applications of multi-agent architectures and to experiment with modular system design using AI-based components.
 
 
 
