@@ -63,3 +63,27 @@ code_quality_documentation_task:
     risk areas caused by missing tests, and concrete refactoring suggestions with a prioritized list of recommended test cases.
     Formatted as markdown without '```'
   agent: code_quality_documentation_agent
+
+reporting_task:
+  description: >
+    Fasse die Ergebnisse der vorherigen Tasks (statische Analyse, Security Review,
+    Architektur-Review, Performance-Analyse und Code-Qualität) in einem gemeinsamen
+    Abschlussbericht zusammen.
+
+    Strukturiere den Bericht mit klaren Überschriften, zum Beispiel:
+    - Überblick
+    - Statische Analyse
+    - Sicherheit
+    - Architektur
+    - Performance
+    - Code-Qualität und Tests
+    - Gesamtbewertung und Empfehlungen
+
+    Nutze die Inhalte der vorher erzeugten Teil-Reports, die dir im Kontext zur
+    Verfügung stehen, und vermeide unnötige Wiederholungen.
+  expected_output: >
+    Ein konsistenter, gut strukturierter Abschlussbericht im Markdown-Format ohne ```,
+    der die wichtigsten Punkte der einzelnen Teil-Analysen zusammenfasst, die
+    Probleme nach Relevanz einordnet und konkrete, priorisierte Handlungsempfehlungen
+    für das Projekt im Pfad {path} gibt.
+  agent: report_agent

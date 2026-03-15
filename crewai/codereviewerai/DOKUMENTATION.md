@@ -44,7 +44,7 @@ Die Crew orchestriert die 5 Agenten, jeder hat seine spezifischen Tasks und Tool
 
 ---
 
-## Die 5 Agenten
+## Die Agenten
 
 **Static Analyst**: Macht statische Code-Analyse, findet Code-Smells und Style-Probleme. Nutzt ReadProjectTool, CloneRepoTool, ReadRepoFilesTool, SerperDevTool und MCP Tools. Output: `output/static_analysis.md`
 
@@ -55,6 +55,8 @@ Die Crew orchestriert die 5 Agenten, jeder hat seine spezifischen Tasks und Tool
 **Performance Optimizer**: Findet Performance-Bottlenecks und ineffiziente Patterns. Nutzt CloneRepoTool, ReadRepoFilesTool und MCP Tools für Komplexitäts-Metriken. Output: `output/performance_analysis.md`
 
 **Code Quality Reviewer**: Prüft Code-Qualität, Dokumentation und Test-Coverage. Nutzt CloneRepoTool, ReadRepoFilesTool und MCP Tools für Duplikation und Dokumentation. Output: `output/code_quality_review.md`
+
+**Report Agent**: Liest die Ergebnisse der vorherigen Agenten (statische Analyse, Security, Architektur, Performance, Code-Qualität) aus dem Kontext und fasst sie zu einem gemeinsamen Abschlussbericht zusammen. Der Bericht ist nach Bereichen gegliedert (z.B. Überblick, Statische Analyse, Sicherheit, Architektur, Performance, Code-Qualität, Empfehlungen) und hebt die wichtigsten Punkte und nächsten Schritte hervor. Output: `output/final_report.md`
 
 ---
 

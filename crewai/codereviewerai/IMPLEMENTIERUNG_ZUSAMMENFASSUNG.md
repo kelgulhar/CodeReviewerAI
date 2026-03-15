@@ -4,7 +4,7 @@
 
 ### Agenten-Konfiguration (`agents.yaml`)
 
-Alle PLACEHOLDER wurden entfernt und durch sinnvolle Beschreibungen ersetzt. Die 5 Agenten sind jetzt finalisiert:
+Alle PLACEHOLDER wurden entfernt und durch sinnvolle Beschreibungen ersetzt. Die fachlichen Analyse-Agenten sind:
 
 1. `static_analyst` - Statische Code-Analyse
 2. `security_reviewer` - Sicherheitsanalyse
@@ -12,7 +12,7 @@ Alle PLACEHOLDER wurden entfernt und durch sinnvolle Beschreibungen ersetzt. Die
 4. `performance_optimizer` - Performance-Analyse
 5. `code_quality_documentation_agent` - Code-Qualität, Dokumentation & Test-Coverage (kombiniert)
 
-Der `test_coverage_agent` wurde in den `code_quality_documentation_agent` integriert, um die 5-Agenten-Anforderung zu erfüllen.
+Zusätzlich gibt es jetzt einen `report_agent`, der aus den Ergebnissen dieser Agenten einen Abschlussbericht erzeugt.
 
 ---
 
