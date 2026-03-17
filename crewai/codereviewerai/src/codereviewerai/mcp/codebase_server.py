@@ -6,10 +6,16 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
+# Import of reusable repository file discovery helpers.
+# These functions contain the actual logic; this MCP server only exposes them as tools.
 from codereviewerai.tools.file_discovery import (
     find_files_in_repo,
     list_directory_in_repo,
 )
+
+# Import of reusable repository setup and inspection helpers.
+# The server delegates cloning, path validation, tree rendering,
+# and manifest summarization to these tool functions.
 from codereviewerai.tools.repo_utils import (
     clone_repo,
     render_tree,
@@ -19,9 +25,12 @@ from codereviewerai.tools.repo_utils import (
     summarize_manifests_in_repo,
 )
 
+# Configure basic logging for MCP server execution.
+# Logging to stderr is typical for stdio-based MCP servers.
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 logger = logging.getLogger("codereviewerai_mcp")
 
+# Create the MCP server instance that exposes codebase-related tools.
 mcp = FastMCP("codereviewerai-codebase")
 
 
@@ -37,6 +46,8 @@ async def find_files(
         pattern: Glob pattern relative to repository root, e.g. '**/*.py' or '**/*test*.py'.
         max_results: Maximum number of matching files to return.
     """
+    # Delegates file lookup to the extracted tool logic.
+    # Returns a JSON string with matching relative file paths.
     return find_files_in_repo(
         repo_path=repo_path,
         pattern=pattern,
@@ -56,6 +67,8 @@ async def list_directory(
         relative_path: Directory relative to repository root.
         max_entries: Maximum number of entries to return.
     """
+    # Delegates safe directory listing to the extracted tool logic.
+    # Returns a JSON string describing files and subdirectories.
     return list_directory_in_repo(
         repo_path=repo_path,
         relative_path=relative_path,
@@ -75,11 +88,20 @@ async def prepare_repository(path: str, max_depth: int = 4) -> str:
         path: Absolute or relative path to projects.json.
         max_depth: Maximum traversal depth for the repository tree.
     """
+    # Resolve the repository URL from the provided projects.json file.
     repo_url = resolve_project(path)
+
+    # Clone the repository into the local cache and return the local path.
     repo_path = clone_repo(repo_url)
+
+    # Build a textual overview of the repository structure for downstream agents.
     repo_tree = render_tree(safe_repo_root(repo_path), max_depth=max_depth)
+
+    # Summarize key manifest/configuration files to provide architectural context.
     manifest_summary = summarize_manifests_in_repo(repo_path)
 
+    # Return all setup data as a structured JSON string.
+    # This output is consumed by later tasks and agents.
     return json.dumps(
         {
             "repo_url": repo_url,
@@ -98,7 +120,10 @@ async def get_repo_tree(repo_path: str, max_depth: int = 4) -> str:
         repo_path: Local repository path returned by prepare_repository.
         max_depth: Maximum traversal depth.
     """
+    # Validate that the given path points to a valid local repository root.
     root = safe_repo_root(repo_path)
+
+    # Return a textual tree representation of the repository.
     return render_tree(root, max_depth=max_depth)
 
 
@@ -110,7 +135,11 @@ async def read_file(repo_path: str, relative_path: str, max_chars: int = 20000) 
         relative_path: Path relative to repository root.
         max_chars: Maximum number of characters to return.
     """
+    # Validate that the requested file stays inside the repository boundary.
     target = safe_target_file(repo_path, relative_path)
+
+    # Read the file content in a fault-tolerant way and truncate the result
+    # to keep tool responses bounded for LLM consumption.
     content = target.read_text(encoding="utf-8", errors="ignore")
     return content[:max_chars]
 
@@ -121,12 +150,15 @@ async def summarize_manifests(repo_path: str) -> str:
     Args:
         repo_path: Local repository path returned by prepare_repository.
     """
+    # Delegates manifest summarization to the reusable repository utility logic.
     return summarize_manifests_in_repo(repo_path)
 
 
 def main() -> None:
+    # Start the MCP server using stdio transport so CrewAI can communicate with it.
     mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
+    # Entry point for running the server as a Python module/script.
     main()

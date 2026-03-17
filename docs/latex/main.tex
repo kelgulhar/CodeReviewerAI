@@ -26,14 +26,17 @@ Stefan Zuza 2410859032}
 \maketitle
 
 \begin{abstract}
-Tick the boxes for the level your implementation achieves:
-
-\begin{itemize}
-    \item[$\square$] Minimal
-    \item[$\boxtimes$] Advanced
-    \item[$\square$] Expert
-\end{itemize}
-
+	This project presents a modular multi-agent system for automated software repository analysis. The system uses specialized agents to perform tasks such as repository preparation, static code analysis, architecture review, and extended analyses including security, performance, documentation quality, and test coverage.
+	
+	A shared repository context ensures deterministic execution, while a structured tool infrastructure enables agents to access repository data in a controlled manner. The system demonstrates how complex software review tasks can be decomposed into coordinated agent workflows.\\
+	
+	Level of project implementation:
+	
+	\begin{itemize}
+		\item[$\square$] Minimal
+		\item[$\boxtimes$] Advanced
+		\item[$\square$] Expert
+	\end{itemize}
 \end{abstract}
 
 \section{Work Distribution}
@@ -46,12 +49,14 @@ Julia was responsible for the implementation of the code\_quality\_documentation
 Stefan implemented the security\_reviewer and its associated tools, as well as the performance\_optimizer. His responsibilities covered the design of security-focused analysis functionality and performance-oriented review capabilities for detecting vulnerabilities, risky coding practices, and inefficient implementation patterns.
 
 \section{Problem Statement}
-Our multi-agent system is designed to automate the analysis of software repositories by assigning different review tasks to specialized agents. The scenario is that a repository is provided through a `projects.json` file, after which the system prepares the repository and performs focused analyses such as static code review, architecture assessment, and, in extended versions, security, performance, documentation, and test coverage evaluation. The main goal is to make repository reviews more structured, reusable, and consistent.
+Our multi-agent system is designed to automate the analysis of software repositories by assigning different review tasks to specialized agents. The scenario is that a repository is provided through a \texttt{projects.json} file, after which the system prepares the repository and performs focused analyses such as static code review, architecture assessment, and, in extended versions, security, performance, documentation, and test coverage evaluation. The main goal is to make repository reviews more structured, reusable, and consistent.
 
 A key assumption is that the repository can be resolved and cloned from the given input path and that all later analyses should work on the same prepared project state. We also assume that separating responsibilities across multiple specialized agents leads to clearer and more reliable results than using one single general-purpose agent.
 
 \section{Architecture}
 The system follows a modular multi-agent architecture implemented with the CrewAI framework. Each agent is responsible for a specific type of repository analysis and operates on a shared prepared repository context.
+
+A key design decision is the use of a shared repository context. The repository is prepared once and then reused across all analysis agents. This ensures that all agents operate on the same deterministic project state and prevents inconsistencies between different analysis steps.
 
 The architecture separates three major concerns:
 
@@ -78,13 +83,13 @@ Our system is built around specialized agents that each focus on a specific part
 	\item The \textbf{architecture\_design\_analyst} focuses on higher-level software design questions. It evaluates modularity, separation of concerns, coupling, dependency direction, and maintainability risks. Like the static analyst, it builds on the prepared repository context and uses the structural information gathered in the setup phase to assess the system architecture.
 	
 	
-	\item The \textbf{security\_reviewer} analyzes the repository for potential security risks and insecure coding practices. It focuses on identifying hardcoded secrets, insecure configuration files, and authentication or authorization related code. The agent uses specialized analysis tools to scan the repository for sensitive information such as API keys, passwords, or private key material and reports confirmed findings together with their severity and possible remediation strategies.
+	\item The \textbf{security\_reviewer} analyzes the repository for potential security risks and insecure coding practices. It focuses on identifying hardcoded secrets, insecure configuration files, and authentication or authorization related code. The agent uses specialized analysis tools to scan the repository for sensitive information such as API keys, passwords, or private key material and reports evidence-based findings together with their severity and possible remediation strategies.
 	
 	\item The \textbf{performance\_optimizer} evaluates the repository with regard to potential performance issues and inefficient implementation patterns. Its analysis focuses on identifying computationally expensive algorithms, unnecessary loops, inefficient data processing patterns, and potential bottlenecks that could negatively impact runtime behavior. Based on these observations, the agent provides recommendations for possible optimization strategies.
 	
 	\item The \textbf{code\_quality\_documentation\_agent} focuses on code readability and maintainability. It analyzes naming conventions, code clarity, documentation completeness, and potential refactoring opportunities. The agent also highlights long or complex functions and areas where additional documentation or restructuring could improve the maintainability of the codebase.
 	
-	\item The \textbf{test\_coverage\_agent} evaluates the test structure of the repository. It identifies existing test files and attempts to detect source files that may not be covered by tests. Based on this analysis, the agent suggests potential areas where additional tests could increase reliability and confidence in the software system. 	
+	\item The \textbf{test\_coverage\_agent} evaluates the test structure of the repository. It identifies existing test files and analyzes their relation to the source code structure in order to detect likely coverage gaps. Based on this heuristic analysis, the agent suggests areas where additional tests could improve reliability and confidence in the software system.
 \end{itemize}
 
 \subsection{Task Description}
@@ -115,7 +120,7 @@ After the repository preparation phase, the remaining agents perform different a
 Each agent accesses the repository through dedicated tools that allow operations such as reading files, listing directories, detecting security-relevant patterns, or identifying potential test coverage gaps. The agents generate structured reports that describe the identified issues and provide recommendations for improvement.
 
 
-Conceptually, the architecture could also support parallel execution of the analysis agents once the repository preparation is complete. This parallel execution model is illustrated in Figure~\ref{fig:agent_parallel_context_flow_vertical}. However, for the current implementation a sequential execution strategy was chosen in order to reduce coordination complexity.\\
+Conceptually, the architecture could also support parallel execution of the analysis agents once the repository preparation is complete. This parallel execution model is illustrated in Figure~\ref{fig:agent_parallel_context_flow_vertical}. However, for the current implementation a sequential execution strategy was chosen in order to reduce coordination complexity.
 
 \begin{figure}[htbp]
 	\centering
@@ -157,9 +162,7 @@ Conceptually, the architecture could also support parallel execution of the anal
 	\label{fig:agent_flow}
 \end{figure}
 
-\textbf{TODO} oben -> das wies wirklich bei uns ist, unten -> das wie wir uns das eigentlich gedacht hätten
-
-\begin{figure}[htbp]
+\begin{figure}[htpb]
 	\centering
 	\begin{tikzpicture}[
 		every node/.style={font=\scriptsize},
@@ -211,27 +214,33 @@ Conceptually, the architecture could also support parallel execution of the anal
 		\draw[arrow] (split) -- (test.west);
 		
 	\end{tikzpicture}
-	\caption{Execution flow of the multi-agent system. The Repo Setup Agent first prepares the shared repository context, which is then used by the analysis agents in parallel.} 
+	\caption{Conceptual execution model of the multi-agent system. After the repository is prepared, analysis agents could operate in parallel on the shared repository context. In the current implementation, a sequential execution strategy is used.}
 	\label{fig:agent_parallel_context_flow_vertical}
 \end{figure}
 
 \section{Minimal}
-The minimal functionality of the system focuses on preparing a repository and performing a deterministic static analysis.
 
-At this level, the system includes the repo\_setup\_agent and the static\_analyst. The repo\_setup\_agent resolves the repository from the provided input file, clones it into a local environment, and extracts structural information such as the directory tree and key manifest files. This preparation step ensures that all later analyses operate on a consistent and deterministic repository state.
+The minimal level of the system requires the implementation of at least four agents, the use of tools, and the integration of an MCP server.
 
-The static\_analyst then performs a static code analysis using available analysis tools and repository inspection utilities. It identifies potential maintainability issues, structural weaknesses, and code quality concerns. The findings are summarized in a structured report containing an executive summary, identified hotspots, and recommended improvements.
+These requirements are fulfilled by the core architecture of the system. The implementation includes the \textbf{repo\_setup\_agent}, \textbf{static\_analyst}, \textbf{architecture\_design\_analyst}, and additional agents such as the \textbf{security\_reviewer}, thereby exceeding the minimum requirement of four agents.
 
-This minimal configuration demonstrates the core concept of the system: distributing repository review tasks across specialized agents that operate on a shared repository context.
+The system makes explicit use of tools for repository interaction and analysis. For example, the \textbf{static\_analyst} uses tools such as \texttt{DirectoryReadTool}, \texttt{FileReadTool}, and a custom \texttt{RunStaticAnalysisTool} to perform deterministic static analysis. These tools allow the agent to inspect the repository structure and execute external analysis utilities in a controlled and reproducible way.
+
+Furthermore, the system integrates an MCP server to provide structured access to repository data. The \textbf{repo\_setup\_agent} uses the MCP tool \texttt{prepare\_repository} to resolve the repository, clone it, and generate a shared repository context. This MCP-based interaction ensures that all agents operate on the same prepared repository state.
+
+Overall, the minimal implementation demonstrates a working multi-agent system with tool usage and MCP integration, fulfilling all required criteria.
+
 \section{Advanced}
 
-The advanced version of the system extends the minimal implementation by introducing additional specialized analysis agents and a structured tool infrastructure.
+The advanced level extends the minimal implementation by requiring more than four agents and the integration of a custom MCP server.
 
-Several additional agents were implemented to cover different aspects of repository quality. The security\_reviewer analyzes the repository for security vulnerabilities such as exposed secrets or insecure configuration patterns. The performance\_optimizer evaluates potential performance issues and inefficient implementation patterns. The code\_quality\_documentation\_agent focuses on readability, maintainability, and documentation completeness. Finally, the test\_coverage\_agent evaluates the structure of the testing setup and identifies potential gaps in test coverage.
+This requirement is fulfilled by the implementation of multiple specialized agents, including the \textbf{security\_reviewer}, \textbf{performance\_optimizer}, \textbf{code\_quality\_documentation\_agent}, and \textbf{test\_coverage\_agent}. Each of these agents focuses on a specific aspect of repository quality, enabling a modular and extensible analysis workflow.
 
-To support these agents, the system integrates a modular tool infrastructure exposed through MCP servers. These servers provide structured access to repository operations such as file inspection, dependency analysis, security scanning, and file discovery. The actual analysis logic is implemented in reusable tool modules, while the MCP servers act as thin interfaces that expose these capabilities to the agents.
+In addition, the system includes custom-built MCP servers that expose domain-specific functionality to the agents. Two main MCP servers are implemented: a codebase server and a security server. The codebase server provides tools such as \texttt{prepare\_repository}, \texttt{read\_file}, and \texttt{find\_files}, which allow structured access to repository contents. The security server provides specialized analysis tools such as \texttt{scan\_for\_secrets}, \texttt{find\_security\_related\_files}, and \texttt{inspect\_dependency\_files}.
 
-This architecture improves modularity, reusability, and maintainability of the system and allows the agents to perform more sophisticated repository analyses compared to the minimal version.
+A key design decision is that the core analysis logic is implemented in reusable tool modules, while the MCP servers act as thin wrappers that expose this functionality to the agents. This separation improves maintainability, enables independent testing of analysis logic, and allows flexible reuse of tools across different agents.
+
+By combining multiple specialized agents with a custom MCP-based tool infrastructure, the system fulfills the advanced level requirements and demonstrates a scalable architecture for automated repository analysis.
 
 \section{Reflection}
 
@@ -244,29 +253,5 @@ To solve this problem, repository preparation was moved into a dedicated agent (
 Another design decision was the separation between MCP servers and tool logic. Instead of placing all logic directly inside the MCP servers, the analysis functionality was moved into reusable tool modules. The MCP servers now act as thin wrappers that expose these tools to the agents. This improves maintainability and allows the analysis logic to be tested independently of the agent framework.
 
 Despite these improvements, the system still has limitations. The analysis results depend on heuristic detection methods and the reasoning capabilities of the language model. Future improvements could include deeper static analysis integration, more advanced dependency vulnerability scanning, and improved aggregation of results across agents.
-\begin{itemize}
-	\item Tools, die zur verfügung gestellt werden nur als Werkzeugkasten - agent wählt sprachlich aus, welches tool er verwendet/was am besten passen sollte -> keine möglichkeit ihm zu sagen, welches tool er zuerst verwenden soll -> preparen in eigenen agent ausgelagert um vorbereitung zuerst zu erzwingen
-\end{itemize}
-
-\section{Feedback - Optional}
-The project provided valuable hands-on experience with multi-agent systems and modern AI-assisted software analysis workflows. In particular, the integration of specialized agents with structured tool interfaces helped illustrate how complex analysis tasks can be decomposed into smaller, focused components.
-
-One of the most interesting aspects of the project was designing the interaction between agents and tools. The process highlighted both the flexibility and the challenges of coordinating autonomous agents within a structured workflow.
-
-Overall, the project was a useful opportunity to explore practical applications of multi-agent architectures and to experiment with modular system design using AI-based components.
-
-
-
-\subsection{References}
-
-Please number citations consecutively within brackets \cite{Vaswani2017}. The 
-sentence punctuation follows the bracket \cite{Vaswani2017}. Refer simply to the reference 
-number, as in \cite{Vaswani2017}---do not use ``Ref. \cite{Vaswani2017}'' or ``reference \cite{Vaswani2017}'' except at 
-the beginning of a sentence: ``Reference \cite{Vaswani2017} was the first $\ldots$''
-
-%-----------------------------------
-\bibliographystyle{IEEEtran}
-\bibliography{library.bib}
-
 
 \end{document}
